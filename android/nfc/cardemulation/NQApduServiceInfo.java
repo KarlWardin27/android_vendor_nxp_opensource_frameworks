@@ -73,6 +73,7 @@ public class NQApduServiceInfo extends ApduServiceInfo implements Parcelable {
     static final int POWER_STATE_SWITCH_ON = 1;
     static final int POWER_STATE_SWITCH_OFF = 2;
     static final int POWER_STATE_BATTERY_OFF = 4;
+    String offHostName, staticOffHostName;
 
     /**
      * The name of the meta-data element that contains
@@ -138,13 +139,13 @@ public class NQApduServiceInfo extends ApduServiceInfo implements Parcelable {
     /**
      * @hide
      */
-  public NQApduServiceInfo(ResolveInfo info, boolean onHost, String description,
+  public NQApduServiceInfo(ResolveInfo info, String description,
             ArrayList<NQAidGroup> staticNQAidGroups, ArrayList<NQAidGroup> dynamicNQAidGroups,
             boolean requiresUnlock, int bannerResource, int uid,
             String settingsActivityName, ESeInfo seExtension,
-            ArrayList<Nfcid2Group> nfcid2Groups, byte[] banner,boolean modifiable) {
-        super(info, onHost, description, nqAidGroups2AidGroups(staticNQAidGroups), nqAidGroups2AidGroups(dynamicNQAidGroups),
-            requiresUnlock, bannerResource, uid, settingsActivityName);
+            ArrayList<Nfcid2Group> nfcid2Groups, byte[] banner,boolean modifiable, String offHostName, String staticOffHostName) {
+        super(info, description, nqAidGroups2AidGroups(staticNQAidGroups), nqAidGroups2AidGroups(dynamicNQAidGroups),
+            requiresUnlock, bannerResource, uid, settingsActivityName, offHostName, staticOffHostName);
         if(banner != null) {
             this.mByteArrayBanner = banner;
         } else {
@@ -157,6 +158,8 @@ public class NQApduServiceInfo extends ApduServiceInfo implements Parcelable {
         this.mNfcid2CategoryToGroup = new HashMap<String, Nfcid2Group>();
         this.mStaticNQAidGroups = new HashMap<String, NQAidGroup>();
         this.mDynamicNQAidGroups = new HashMap<String, NQAidGroup>();
+        this.offHostName = offHostName;
+        this.staticOffHostName = staticOffHostName;
         if(staticNQAidGroups != null) {
             for (NQAidGroup nqAidGroup : staticNQAidGroups) {
                 this.mStaticNQAidGroups.put(nqAidGroup.getCategory(), nqAidGroup);
@@ -517,6 +520,14 @@ public class NQApduServiceInfo extends ApduServiceInfo implements Parcelable {
         return groups;
     }
 
+    public String getOffHostName() {
+        return offHostName;
+    }
+
+    public String getStaticOffHostName() {
+        return staticOffHostName;
+    }
+
     /**
      * This is a convenience function to create an ApduServiceInfo object of the current
      * NQApduServiceInfo.
@@ -526,10 +537,10 @@ public class NQApduServiceInfo extends ApduServiceInfo implements Parcelable {
      * @return An ApduServiceInfo object which can be correctly serialized as parcel
      */
     public ApduServiceInfo createApduServiceInfo() {
-        return new ApduServiceInfo(this.getResolveInfo(), this.isOnHost(), this.getDescription(),
+        return new ApduServiceInfo(this.getResolveInfo(), this.getDescription(),
             nqAidGroups2AidGroups(this.getStaticNQAidGroups()), nqAidGroups2AidGroups(this.getDynamicNQAidGroups()),
             this.requiresUnlock(), this.getBannerId(), this.getUid(),
-            this.getSettingsActivityName());
+            this.getSettingsActivityName(), this.getOffHostName(), this.getStaticOffHostName());
     }
 
     /**
@@ -763,7 +774,6 @@ public class NQApduServiceInfo extends ApduServiceInfo implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         mService.writeToParcel(dest, flags);
         dest.writeString(mDescription);
-        dest.writeInt(mOnHost ? 1 : 0);
         dest.writeInt(mStaticNQAidGroups.size());
         if (mStaticNQAidGroups.size() > 0) {
             dest.writeTypedList(new ArrayList<NQAidGroup>(mStaticNQAidGroups.values()));
@@ -785,6 +795,8 @@ public class NQApduServiceInfo extends ApduServiceInfo implements Parcelable {
         dest.writeByteArray(mByteArrayBanner);
         dest.writeInt(mModifiable ? 1 : 0);
         dest.writeInt(mServiceState);
+        dest.writeString(offHostName);
+        dest.writeString(staticOffHostName);
     };
 
     public static final Parcelable.Creator<NQApduServiceInfo> CREATOR =
@@ -793,7 +805,6 @@ public class NQApduServiceInfo extends ApduServiceInfo implements Parcelable {
         public NQApduServiceInfo createFromParcel(Parcel source) {
             ResolveInfo info = ResolveInfo.CREATOR.createFromParcel(source);
             String description = source.readString();
-            boolean onHost = source.readInt() != 0;
             ArrayList<NQAidGroup> staticNQAidGroups = new ArrayList<NQAidGroup>();
             int numStaticGroups = source.readInt();
             if (numStaticGroups > 0) {
@@ -818,9 +829,11 @@ public class NQApduServiceInfo extends ApduServiceInfo implements Parcelable {
             byte[] byteArrayBanner = new byte[]{0};
             byteArrayBanner = source.createByteArray();
             boolean modifiable = source.readInt() != 0;
-            NQApduServiceInfo service = new NQApduServiceInfo(info, onHost, description, staticNQAidGroups,
+            String offHostName = source.readString();
+            String staticOffHostName = source.readString();
+            NQApduServiceInfo service = new NQApduServiceInfo(info, description, staticNQAidGroups,
                     dynamicNQAidGroups, requiresUnlock, bannerResource, uid,
-                    settingsActivityName, seExtension, nfcid2Groups, byteArrayBanner ,modifiable);
+                    settingsActivityName, seExtension, nfcid2Groups, byteArrayBanner ,modifiable, offHostName, staticOffHostName);
             service.setServiceState(CardEmulation.CATEGORY_OTHER, source.readInt());
             return service;
         }

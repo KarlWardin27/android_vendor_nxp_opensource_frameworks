@@ -248,6 +248,7 @@ public class NxpNfcController {
         boolean requiresUnlock = false;
         Drawable banner = mService.getBanner();
         byte[] byteArrayBanner = null;
+        String offHostName = null, staticOffHostName = null;
 
         if(banner != null){
             Bitmap bitmap = (Bitmap)((BitmapDrawable)banner).getBitmap();
@@ -268,18 +269,24 @@ public class NxpNfcController {
         resolveInfo.serviceInfo.name = mService.getServiceName();
         if(seName != null) {
             if(seName.equals("SIM") || seName.equals("SIM1")) {
+                offHostName = "SIM1";
                 seId = NxpConstants.UICC_ID_TYPE;
             } else if (seName.equals("SIM2")) {
+                offHostName = "SIM2";
                 seId = NxpConstants.UICC2_ID_TYPE;
             } else if (seName.equals("eSE")) {
+                offHostName = "eSE1";
                 seId = NxpConstants.SMART_MX_ID_TYPE;
             } else {
+                offHostName = null;
                 Log.e(TAG,"wrong Se name");
             }
         }
+        staticOffHostName = offHostName;
+
         NQApduServiceInfo.ESeInfo mEseInfo = new NQApduServiceInfo.ESeInfo(seId,powerstate);
-        return new NQApduServiceInfo(resolveInfo,onHost,description,staticNQAidGroups, dynamicNQAidGroups,
-                requiresUnlock,bannerId,userId, "Fixme: NXP:<Activity Name>", mEseInfo, null, byteArrayBanner, modifiable);
+        return new NQApduServiceInfo(resolveInfo,description,staticNQAidGroups, dynamicNQAidGroups,
+                requiresUnlock,bannerId,userId, "Fixme: NXP:<Activity Name>", mEseInfo, null, byteArrayBanner, modifiable, offHostName, staticOffHostName);
     }
 
     /**
@@ -393,6 +400,7 @@ public class NxpNfcController {
         int seId = 0;
         int powerstate = -1;
         boolean modifiable = true;
+        String offHostName, staticOffHostName;
 
         /* creating Resolveinfo object */
         ResolveInfo resolveInfo = new ResolveInfo();
@@ -404,14 +412,19 @@ public class NxpNfcController {
         //Temp for SE conversion
         String secureElement = null;
         if((seName.equals("SIM")) || (seName.equals("SIM1"))) {
+            offHostName = "SIM1";
             secureElement = NxpConstants.UICC_ID;
         } else if (seName.equals("SIM2")){
+            offHostName = "SIM2";
             secureElement = NxpConstants.UICC2_ID;
         } else if ((seName.equals("eSE1")) || (seName.equals("eSE"))){
+            offHostName = "eSE1";
             secureElement = NxpConstants.SMART_MX_ID;
         } else {
+            offHostName = null;
             Log.e(TAG,"wrong Se name");
         }
+        staticOffHostName = offHostName;
 
         if(secureElement.equals(NxpConstants.UICC_ID)) {
             seId = NxpConstants.UICC_ID_TYPE;
@@ -425,9 +438,9 @@ public class NxpNfcController {
             Log.e(TAG,"wrong Se name");
         }
         NQApduServiceInfo.ESeInfo mEseInfo = new NQApduServiceInfo.ESeInfo(seId,powerstate);
-        NQApduServiceInfo newService = new NQApduServiceInfo(resolveInfo, onHost, description,
+        NQApduServiceInfo newService = new NQApduServiceInfo(resolveInfo, description,
                 staticNQAidGroups, dynamicNQAidGroups, requiresUnlock, bannerResId, userId,
-                "Fixme: NXP:<Activity Name>", mEseInfo, null, null, modifiable);
+                "Fixme: NXP:<Activity Name>", mEseInfo, null, null, modifiable, offHostName, staticOffHostName);
 
         mSeNameApduService.put(seName, newService);
 
