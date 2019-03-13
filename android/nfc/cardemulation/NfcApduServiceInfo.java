@@ -74,6 +74,7 @@ public class NfcApduServiceInfo extends ApduServiceInfo implements Parcelable {
     static final int POWER_STATE_SWITCH_ON = 1;
     static final int POWER_STATE_SWITCH_OFF = 2;
     static final int POWER_STATE_BATTERY_OFF = 4;
+    String offHostName, staticOffHostName;
 
     /**
      * The name of the meta-data element that contains
@@ -120,16 +121,18 @@ public class NfcApduServiceInfo extends ApduServiceInfo implements Parcelable {
    /**
      * @hide
      */
-    public NfcApduServiceInfo(ResolveInfo info, boolean onHost, String description,
+    public NfcApduServiceInfo(ResolveInfo info, String description,
             ArrayList<NfcAidGroup> staticNfcAidGroups, ArrayList<NfcAidGroup> dynamicNfcAidGroups,
             boolean requiresUnlock, int bannerResource, int uid,
-            String settingsActivityName, ESeInfo seExtension,boolean modifiable){
-        super(info, onHost, description, nfcAidGroups2AidGroups(staticNfcAidGroups), nfcAidGroups2AidGroups(dynamicNfcAidGroups),
-                requiresUnlock, bannerResource, uid, settingsActivityName);
+            String settingsActivityName, ESeInfo seExtension,boolean modifiable, String offHostName, String staticOffHostName){
+        super(info, description, nfcAidGroups2AidGroups(staticNfcAidGroups), nfcAidGroups2AidGroups(dynamicNfcAidGroups),
+                requiresUnlock, bannerResource, uid, settingsActivityName, offHostName, staticOffHostName);
         this.mModifiable = modifiable;
         this.mServiceState = NfcConstants.SERVICE_STATE_ENABLING;
         this.mStaticNfcAidGroups = new HashMap<String, NfcAidGroup>();
         this.mDynamicNfcAidGroups = new HashMap<String, NfcAidGroup>();
+        this.offHostName = offHostName;
+        this.staticOffHostName = staticOffHostName;
         if(staticNfcAidGroups != null) {
             for (NfcAidGroup nfcAidGroup : staticNfcAidGroups) {
                 this.mStaticNfcAidGroups.put(nfcAidGroup.getCategory(), nfcAidGroup);
@@ -403,6 +406,13 @@ public class NfcApduServiceInfo extends ApduServiceInfo implements Parcelable {
         return groups;
     }
 
+    public String getOffHostName() {
+        return offHostName;
+    }
+
+    public String getStaticOffHostName() {
+        return staticOffHostName;
+    }
 
     /**
      * This is a convenience function to create an ApduServiceInfo object of the current
@@ -413,10 +423,10 @@ public class NfcApduServiceInfo extends ApduServiceInfo implements Parcelable {
      * @return An ApduServiceInfo object which can be correctly serialized as parcel
      */
     public ApduServiceInfo createApduServiceInfo() {
-        return new ApduServiceInfo(this.getResolveInfo(), this.isOnHost(), this.getDescription(),
+        return new ApduServiceInfo(this.getResolveInfo(), this.getDescription(),
             nfcAidGroups2AidGroups(this.getStaticNfcAidGroups()), nfcAidGroups2AidGroups(this.getDynamicNfcAidGroups()),
             this.requiresUnlock(), this.getBannerId(), this.getUid(),
-            this.getSettingsActivityName());
+            this.getSettingsActivityName(), this.getOffHostName(), this.getStaticOffHostName());
     }
 
     /**
@@ -525,6 +535,19 @@ public class NfcApduServiceInfo extends ApduServiceInfo implements Parcelable {
         return groups;
     }
 
+    public String getOtherAidGroupDescription(){
+        String otherAidGroupDescription = null;
+        if(mStaticNfcAidGroups.containsKey(CardEmulation.CATEGORY_OTHER))
+            otherAidGroupDescription = mStaticNfcAidGroups.get(CardEmulation.CATEGORY_OTHER).description;
+        else if (mDynamicNfcAidGroups.containsKey(CardEmulation.CATEGORY_OTHER))
+            otherAidGroupDescription = mDynamicNfcAidGroups.get(CardEmulation.CATEGORY_OTHER).description;
+        else
+            Log.e(TAG, "getOtherAidGroupDescription: " + "Aid Group with OTHER category not available");
+
+            Log.e(TAG, "getOtherAidGroupDescription: " + otherAidGroupDescription);
+            return otherAidGroupDescription;
+    }
+
     public ESeInfo getSEInfo() {
         return mSeExtension;
     }
@@ -608,7 +631,6 @@ public class NfcApduServiceInfo extends ApduServiceInfo implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         mService.writeToParcel(dest, flags);
         dest.writeString(mDescription);
-        dest.writeInt(mOnHost ? 1 : 0);
         dest.writeInt(mStaticNfcAidGroups.size());
         if (mStaticNfcAidGroups.size() > 0) {
             dest.writeTypedList(new ArrayList<NfcAidGroup>(mStaticNfcAidGroups.values()));
@@ -625,6 +647,8 @@ public class NfcApduServiceInfo extends ApduServiceInfo implements Parcelable {
         dest.writeByteArray(mByteArrayBanner);
         dest.writeInt(mModifiable ? 1 : 0);
         dest.writeInt(mServiceState);
+        dest.writeString(offHostName);
+        dest.writeString(staticOffHostName);
     };
 
     public static final Parcelable.Creator<NfcApduServiceInfo> CREATOR =
@@ -633,7 +657,6 @@ public class NfcApduServiceInfo extends ApduServiceInfo implements Parcelable {
         public NfcApduServiceInfo createFromParcel(Parcel source) {
             ResolveInfo info = ResolveInfo.CREATOR.createFromParcel(source);
             String description = source.readString();
-            boolean onHost = source.readInt() != 0;
             ArrayList<NfcAidGroup> staticNfcAidGroups = new ArrayList<NfcAidGroup>();
             int numStaticGroups = source.readInt();
             if (numStaticGroups > 0) {
@@ -652,9 +675,11 @@ public class NfcApduServiceInfo extends ApduServiceInfo implements Parcelable {
             byte[] byteArrayBanner = new byte[]{0};
             byteArrayBanner = source.createByteArray();
             boolean modifiable = source.readInt() != 0;
-            NfcApduServiceInfo service = new NfcApduServiceInfo(info, onHost, description, staticNfcAidGroups,
+            String offHostName = source.readString();
+            String staticOffHostName = source.readString();
+            NfcApduServiceInfo service = new NfcApduServiceInfo(info, description, staticNfcAidGroups,
                     dynamicNfcAidGroups, requiresUnlock, bannerResource, uid,
-                    settingsActivityName, seExtension, modifiable);
+                    settingsActivityName, seExtension, modifiable, offHostName, staticOffHostName);
             service.setServiceState(CardEmulation.CATEGORY_OTHER, source.readInt());
             return service;
         }
@@ -665,7 +690,7 @@ public class NfcApduServiceInfo extends ApduServiceInfo implements Parcelable {
         }
     };
         public boolean isServiceEnabled(String category) {
-            if(category != CardEmulation.CATEGORY_OTHER) {
+            if(!category.equals(CardEmulation.CATEGORY_OTHER)) {
                 return true;
             }
 
@@ -713,7 +738,7 @@ public class NfcApduServiceInfo extends ApduServiceInfo implements Parcelable {
         }
 
         public int getServiceState(String category) {
-            if(category != CardEmulation.CATEGORY_OTHER) {
+            if(!category.equals(CardEmulation.CATEGORY_OTHER)) {
                 return NfcConstants.SERVICE_STATE_ENABLED;
             }
 
@@ -721,7 +746,7 @@ public class NfcApduServiceInfo extends ApduServiceInfo implements Parcelable {
         }
 
         public int setServiceState(String category ,int state) {
-            if(category != CardEmulation.CATEGORY_OTHER) {
+            if(!category.equals(CardEmulation.CATEGORY_OTHER)) {
                 return NfcConstants.SERVICE_STATE_ENABLED;
             }
 
@@ -737,7 +762,7 @@ public class NfcApduServiceInfo extends ApduServiceInfo implements Parcelable {
          *        TRUE if the commit was successful
          */
         public void updateServiceCommitStatus(String category ,boolean commitStatus) {
-            if(category != CardEmulation.CATEGORY_OTHER) {
+            if(!category.equals(CardEmulation.CATEGORY_OTHER)) {
                 return;
             }
             Log.d(TAG, "updateServiceCommitStatus:Description:" + mDescription + ":InternalState:" + mServiceState + ":commitStatus:"+ commitStatus);
