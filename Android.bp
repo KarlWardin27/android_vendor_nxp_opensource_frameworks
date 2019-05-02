@@ -10,6 +10,9 @@ java_library {
         "com/nxp/**/I*.aidl",
         "com/nxp/**/*.java",
         "android/**/*.java",
+        "com/vzw/*/*.aidl",
+        "com/vzw/*/*.java",
+        "com/vzw/nfc/*/*.java",
     ],
 }
 
