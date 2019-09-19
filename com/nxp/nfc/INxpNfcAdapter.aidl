@@ -1,5 +1,5 @@
  /*
-  * Copyright (C) 2015-2018 NXP Semiconductors
+  * Copyright (C) 2015-2019 NXP Semiconductors
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
   * you may not use this file except in compliance with the License.
@@ -15,34 +15,38 @@
   */
 package com.nxp.nfc;
 
-
-import com.nxp.nfc.INfcVzw;
-import com.nxp.nfc.gsma.internal.INxpNfcController;
-
+import com.nxp.nfc.INxpNfcAdapterExtras;
+import com.nxp.nfc.NfcAidServiceInfo;
 /**
  * @hide
  */
 interface INxpNfcAdapter
 {
-
-    INfcVzw getNfcVzwInterface();
-    INxpNfcController getNxpNfcControllerInterface();
-    int setEmvCoPollProfile(boolean enable, int route);
     void DefaultRouteSet(int routeLoc, boolean fullPower, boolean lowPower, boolean noPower);
-    byte[]  getFWVersion();
-    Map getServicesAidCacheSize(int userId, String category);
-    int getMaxAidRoutingTableSize();
-    int getCommittedAidRoutingTableSize();
+    void MifareDesfireRouteSet(int routeLoc, boolean fullPower, boolean lowPower, boolean noPower);
+    void MifareCLTRouteSet(int routeLoc, boolean fullPower, boolean lowPower, boolean noPower);
+    List<NfcAidServiceInfo> getServicesAidInfo(int userId, String category);
     int[] getActiveSecureElementList(String pkg);
-    int updateServiceState(int userId , in Map serviceState);
-    int setConfig(String configs , String pkg);
-    byte[] readerPassThruMode(byte status, byte modulationTyp);
-    byte[] transceiveAppData(in byte[] data);
+    INxpNfcAdapterExtras getNxpNfcAdapterExtrasInterface();
     int mPOSSetReaderMode(String pkg, boolean on);
     boolean mPOSGetReaderMode(String pkg);
     void stopPoll(String pkg, int mode);
+    void changeDiscoveryTech(IBinder binder, int pollTech, int listenTech);
     void startPoll(String pkg);
-    int nfcSelfTest(String pkg, int type);
+    byte[]  getFWVersion();
+    byte[] readerPassThruMode(byte status, byte modulationTyp);
+    byte[] transceiveAppData(in byte[] data);
+    int setConfig(String configs , String pkg);
     int selectUicc(int uiccSlot);
+    int getMaxAidRoutingTableSize();
+    int getCommittedAidRoutingTableSize();
     int getSelectedUicc();
+    int updateServiceState(int userId , in Map serviceState);
+    int activateSeInterface();
+    int deactivateSeInterface();
+    int setFieldDetectMode(boolean mode);
+    boolean isFieldDetectEnabled();
+    int doWriteT4tData(in byte[] fileId, in byte[] data, int length);
+    byte[] doReadT4tData(in byte[] fileId);
+    int nfcSelfTest(int type);
 }

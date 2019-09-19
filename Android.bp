@@ -7,12 +7,9 @@ java_library {
     required: ["com.nxp.nfc.nq.xml"],
 
     srcs: [
-        "com/nxp/**/I*.aidl",
-        "com/nxp/**/*.java",
+        "com/**/I*.aidl",
+        "com/**/*.java",
         "android/**/*.java",
-        "com/vzw/*/*.aidl",
-        "com/vzw/*/*.java",
-        "com/vzw/nfc/*/*.java",
     ],
 }
 

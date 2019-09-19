@@ -18,25 +18,13 @@
 package com.nxp.nfc;
 
 import android.os.Bundle;
-import com.nxp.intf.IJcopService;
 import android.content.Intent;
 
 /**
  * {@hide}
  */
 interface INxpNfcAdapterExtras {
-
-    int getSecureElementTechList(in String pkg);
-    byte[] getSecureElementUid(in String pkg);
     boolean reset(in String pkg);
     Bundle getAtr(in String pkg);
-    byte[] doGetRouting();
-    void notifyCheckCertResult(in String pkg, in boolean success);
-    void deliverSeIntent(String pkg, in Intent seIntent);
-    int selectUicc(int uiccSlot);
-    int getSelectedUicc();
-    Bundle openuicc(in String pkg, IBinder b);
-    Bundle closeuicc(in String pkg, IBinder b);
-    Bundle transceiveuicc(in String pkg, in byte[] data_in);
-    boolean eSEChipReset(in String pkg);
+    boolean accessControlForCOSU (int mode);
 }
