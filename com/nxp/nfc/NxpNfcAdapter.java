@@ -19,6 +19,25 @@
 *  limitations under the License.
 *
 */
+ * Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+ * Not a Contribution.
+ *
+ * The original Work has been changed by NXP Semiconductors.
+ *
+ * Copyright (C) 2013-2014 NXP Semiconductors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.nxp.nfc;
 
 import java.util.HashMap;
@@ -725,6 +744,7 @@ public final class NxpNfcAdapter {
     }
 
     /**
+<<<<<<< HEAD
      * This API performs writes of T4T data to Nfcee.
      * @param fileId File Id to which to write
      * @param data data bytes to be written
@@ -741,6 +761,38 @@ public final class NxpNfcAdapter {
                 -8  ERROR_EMPTY_PAYLOAD
                 -9  ERROR_NDEF_VALIDATION_FAILED
      * <p>Requires {@link   android.Manifest.permission#NFC} permission.
+=======
+     * This api is called by applications to update the service state of card emualation
+     * services.
+     * <p>This api is implemented for  {@link android.nfc.cardemulation.CardEmulation#CATEGORY_OTHER}.
+     * <p>Requires {@link android.Manifest.permission#NFC} permission.<ul>
+     * <li>This api should be called only when the intent AID routing
+     *     table full is sent by NfcService.
+     * <li>The service state change is persistent for particular UserId.
+     * <li>The service state is written to the Xml and read
+     *     before every routing table  change.
+     * <li>If there is any change in routing table  the routing table is updated to NFCC
+     *     after calling this api.
+     * </ul>
+     * @param  serviceState Map of ServiceName and state of service.
+     * @return whether  the update of Card Emulation services is
+     *          success or not.
+     *          0xFF - failure
+     *          0x00 - success
+     * @throws  IOException if any exception occurs during the service state change.
+     */
+    public int updateServiceState(Map<String , Boolean> serviceState) throws IOException{
+        try {
+            return sNxpService.updateServiceState(UserHandle.myUserId() , serviceState);
+        }catch(RemoteException e)
+        {
+            e.printStackTrace();
+            return 0xFF;
+        }
+    }
+     /**
+     * @hide
+>>>>>>> b74147c43fe4cf9076e1762068966cfc3a8ad06b
      */
     public int doWriteT4tData(byte[] fileId, byte[] data, int length) {
       try {

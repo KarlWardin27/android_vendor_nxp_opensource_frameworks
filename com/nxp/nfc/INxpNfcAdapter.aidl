@@ -27,6 +27,7 @@ interface INxpNfcAdapter
     void MifareCLTRouteSet(int routeLoc, boolean fullPower, boolean lowPower, boolean noPower);
     List<NfcAidServiceInfo> getServicesAidInfo(int userId, String category);
     int[] getActiveSecureElementList(String pkg);
+/*<<<<<<< HEAD
     INxpNfcAdapterExtras getNxpNfcAdapterExtrasInterface();
     int mPOSSetReaderMode(String pkg, boolean on);
     boolean mPOSGetReaderMode(String pkg);
@@ -48,5 +49,7 @@ interface INxpNfcAdapter
     boolean isFieldDetectEnabled();
     int doWriteT4tData(in byte[] fileId, in byte[] data, int length);
     byte[] doReadT4tData(in byte[] fileId);
-    int nfcSelfTest(int type);
+    int nfcSelfTest(int type); */
+    int updateServiceState(int userId , in Map serviceState);
+/*>>>>>>> b74147c43fe4cf9076e1762068966cfc3a8ad06b*/
 }
